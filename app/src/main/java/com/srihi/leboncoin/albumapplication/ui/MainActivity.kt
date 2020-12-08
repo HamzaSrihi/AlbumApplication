@@ -1,7 +1,8 @@
-package com.srihi.leboncoin.albumapplication
+package com.srihi.leboncoin.albumapplication.ui.albumList
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.srihi.leboncoin.albumapplication.R
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
