@@ -1,4 +1,4 @@
-package com.srihi.leboncoin.albumapplication.ui.albumList
+package com.srihi.leboncoin.albumapplication.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle

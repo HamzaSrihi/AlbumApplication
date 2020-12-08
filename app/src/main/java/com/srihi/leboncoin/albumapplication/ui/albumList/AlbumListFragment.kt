@@ -5,56 +5,83 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.srihi.leboncoin.albumapplication.R
+import com.srihi.leboncoin.domain.model.Album
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+import timber.log.Timber
+import kotlinx.android.synthetic.main.fragment_album_list.*
 
-/**
- * A simple [Fragment] subclass.
- * Use the [AlbumListFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
+
 class AlbumListFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    private lateinit var albumsListViewModel: AlbumListViewModel
+    private lateinit var albumsListAdapter: AlbumListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+        albumsListViewModel = ViewModelProvider(this).get(AlbumListViewModel::class.java)
+        albumsListAdapter = AlbumListAdapter(requireContext())
+
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        Timber.d("onCreateView()")
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_album_list, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AlbumListFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            AlbumListFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initView()
+        initObservers()
+    }
+
+    private fun initView() {
+        recycler_view_albums_list.layoutManager = LinearLayoutManager(context)
+        recycler_view_albums_list.adapter = albumsListAdapter
+    }
+
+    private fun initObservers() {
+        albumsListViewModel.itemsFragmentState.observe(
+            viewLifecycleOwner,
+            Observer { state -> onStateChange(state) })
+    }
+
+    private fun onStateChange(fragmentState: FragmentState) =
+        when (fragmentState) {
+            FragmentState.Loading -> showLoadingState()
+            is FragmentState.Loaded -> showLoadedState(fragmentState)
+            is FragmentState.Error -> showErrorState(fragmentState)
+        }
+
+    private fun showLoadingState() {
+        Timber.i("Loading state")
+        progress_bar_loading_items.visibility = View.VISIBLE
+    }
+
+    private fun showLoadedState(loaded: FragmentState.Loaded) {
+        Timber.i("Loaded state")
+        progress_bar_loading_items.visibility = View.GONE
+
+        albumsListAdapter.albums = loaded.albums
+        albumsListAdapter.notifyDataSetChanged()
+    }
+
+
+    private fun showErrorState(error: FragmentState.Error) {
+        Timber.e("error ${error.message}")
+        progress_bar_loading_items.visibility = View.GONE
+    }
+
+    sealed class FragmentState {
+        object Loading : FragmentState()
+        class Loaded(val albums: List<Album>) : FragmentState()
+        class Error(val message: String) : FragmentState()
     }
 }
