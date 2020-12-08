@@ -9,6 +9,6 @@ We have used
  
  # TODO
  
- Make a great design for the app
- add unit test 
+ * Make a great design for the app
+ * add unit test 
  
